@@ -1,1 +1,5 @@
-# hanoi
+# run
+
+```bash
+python tk.py
+```
