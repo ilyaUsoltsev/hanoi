@@ -3,7 +3,7 @@ import random
 from functools import partial
 
 # GLOBAL VARIABLES
-colors = [
+disk_colors = [
     "AliceBlue", "#FAEBD7", "Aqua", "#7FFFD4", "Azure", "#F5F5DC", "Beige", "#FFE4C4",
     "Black", "#FFEBCD", "Blue", "#0000FF", "BlueViolet", "#8A2BE2", "Brown", "#A52A2A",
     "BurlyWood", "#DEB887", "CadetBlue", "#5F9EA0", "Chartreuse", "#7FFF00", "Chocolate",
@@ -19,7 +19,7 @@ colors = [
     "ForestGreen", "#228B22", "Fuchsia", "#FF00FF", "Gainsboro", "#DCDCDC",
     "GhostWhite", "#F8F8FF", "Gold", "#FFD700", "GoldenRod", "#DAA520"
 ];
-random.shuffle(colors);
+random.shuffle(disk_colors);
 
 student_id = '70256421'
 counter = 0
@@ -27,13 +27,13 @@ max_counter = 0
 limit_counter = 1e20
 state = []
 
-def draw_towers(canvas, towers):
+def draw_state(canvas, state):
     tower_width = 100  # Adding some padding for visual spacing
     x_start = 10
     y_start = 350
     disc_height = 10
 
-    for tower_index, tower in enumerate(towers):
+    for tower_index, tower in enumerate(state):
         x = x_start + tower_index * tower_width
         y = y_start
 
@@ -48,63 +48,63 @@ def draw_towers(canvas, towers):
             x2 = x1 + disc_width
             y2 = y
             # Draw the rectangle for the disc
-            canvas.create_rectangle(x1, y1, x2, y2, fill=colors[disc], outline="grey")
+            canvas.create_rectangle(x1, y1, x2, y2, fill=disk_colors[disc], outline="grey")
             # Move up to draw the next disc on top
             y -= disc_height
 
         # Draw the tower base
         canvas.create_line(x, y_start + 5, x + tower_width, y_start + 5, width=4)
 
-# Initialize main window
-root = tk.Tk()
-root.title("Hanoi Towers Visualization")
-
-# Canvas for drawing towers
-canvas = tk.Canvas(root, width=1200, height=400, bg="white")
-canvas.pack()
-
-def initState():
-    global state
+def get_init_state():
     state = []
     for i in range(len(student_id)):
         number_of_disks = int(student_id[i])
         state.append([number_of_disks - idx + (8 - i) * 10 for idx in range(number_of_disks)])
+    return state
+
+# Initialize main window
+root = tk.Tk()
+root.title("Hanoi state Visualization")
+canvas = tk.Canvas(root, width=1200, height=400, bg="white")
+canvas.pack()
+
 
 def move_in_state(from_rod, to_rod):
     global state
     global counter
+    global limit_counter
+
     if counter >= limit_counter:
-        return 0
+        return True
+    
     disk = state[from_rod].pop()
     state[to_rod].append(disk)
     counter += 1
+    return False
 
 
 def hanoi(n, from_rod, to_rod, aux_rod):
-    global limit_counter
-    global counter
     if n == 0:
         return
     hanoi(n - 1, from_rod, aux_rod, to_rod)
-    res = move_in_state(from_rod, to_rod)
-    if(res == 0):
+    is_limit_reached = move_in_state(from_rod, to_rod)
+    if(is_limit_reached):
         return
     hanoi(n - 1, aux_rod, to_rod, from_rod)
 
 
 
-def calculateState():
+def start_moving_discs():
     for i in range(len(student_id) - 1, 0, -1):
         from_rod = i
         to_rod = i - 1
         aux_rod = i - 2 if i == len(student_id) - 1 else i + 1
-        # Assuming maximum width and disc height
         hanoi(len(state[i]), from_rod, to_rod, aux_rod)
 
-initState()
-print(state)
-draw_towers(canvas, state)
-calculateState()
+state = get_init_state()
+draw_state(canvas, state)
+# move all discs to the first rod and bring counter to the maximum value
+start_moving_discs()
 max_counter = counter
 print(f"Total number of moves: {counter}")
 
@@ -113,17 +113,17 @@ def on_button_click(limit):
     global limit_counter    
     global counter
     global max_counter
-    global initState
-    initState()
+    global state
+    state = get_init_state()
     counter = 0 
     limit_counter = max_counter * limit / 100
     print(f"Limit counter: {limit_counter}")
-    calculateState()
+    start_moving_discs()
     canvas.delete("all")
-    draw_towers(canvas, state)
+    draw_state(canvas, state)
 
 
-# Start button
+# Start button and End Buttons
 button = tk.Button(root, text="End", command=lambda: on_button_click(100))
 button.pack(pady=20) 
 button = tk.Button(root, text="Start", command=lambda: on_button_click(0))
@@ -139,15 +139,11 @@ def break_into_blocks(number_string, block_size):
         blocks.append(block)
     return blocks
 
-# The input string
-input_string = '70256421'
 # Break the string into blocks of two digits
-for block in break_into_blocks(input_string, 2):
+for block in break_into_blocks(student_id, 2):
     button = tk.Button(root, text=str(block), command=partial(on_button_click, block))
     button.pack(pady=20)
 
 
-# Run the Tkinter main loop
+
 root.mainloop()
-
-
