@@ -65,8 +65,8 @@ def get_init_state():
 # Initialize main window
 root = tk.Tk()
 root.title("Hanoi state Visualization")
-canvas = tk.Canvas(root, width=1200, height=400, bg="white")
-canvas.pack()
+canvas = tk.Canvas(root, width=800, height=400, bg="white")
+canvas.grid(row=0, columnspan=10, padx=10, pady=20)
 
 
 def move_in_state(from_rod, to_rod):
@@ -123,11 +123,7 @@ def on_button_click(limit):
     draw_state(canvas, state)
 
 
-# Start button and End Buttons
-button = tk.Button(root, text="End", command=lambda: on_button_click(100))
-button.pack(pady=20) 
-button = tk.Button(root, text="Start", command=lambda: on_button_click(0))
-button.pack(pady=20) 
+
 
 def break_into_blocks(number_string, block_size):
     # Initialize an empty list to store the blocks
@@ -140,10 +136,15 @@ def break_into_blocks(number_string, block_size):
     return blocks
 
 # Break the string into blocks of two digits
-for block in break_into_blocks(student_id, 2):
+two_digit_blocks = break_into_blocks(student_id, 2);
+for block_index, block in enumerate(two_digit_blocks):
     button = tk.Button(root, text=str(block), command=partial(on_button_click, block))
-    button.pack(pady=20)
+    button.grid(row=1, column=block_index + 1, padx=10, pady=20)
 
-
+# Start button and End Buttons
+button = tk.Button(root, text="Start", command=lambda: on_button_click(0))
+button.grid(row=1, column=0, padx=10, pady=20)
+button = tk.Button(root, text="End", command=lambda: on_button_click(100))
+button.grid(row=1, column=len(two_digit_blocks)+1, padx=10, pady=20)
 
 root.mainloop()
