@@ -122,6 +122,7 @@ class HanoiController:
         self.model.set_max_counter()
         self.model.reset_state()
         self.view.draw_state()
+        self.create_buttons_and_inputs()
         
 
     def move_disks(self, limit):
@@ -151,6 +152,33 @@ class HanoiController:
         print(self.model.student_id)
         self.start()
         
+    def create_buttons_and_inputs(self):
+        # Start making inputs
+        two_digit_blocks = self.view.break_into_blocks(self.model.student_id, 2);
+        for block_index, two_digits in enumerate(two_digit_blocks):
+            text_var = tk.StringVar()
+            text_var.set(str(two_digits))
+            entry = tk.Entry(self.view.root, textvariable=text_var)
+            entry.grid(row=1, column=block_index + 1, padx=10, pady=20)
+            # Bind the keypress event to restrict input to numeric and limit length
+            entry.bind("<KeyPress>", partial(self.restrict_input, entry))
+            # Bind the Return (Enter) key to process and print the input
+            entry.bind("<Return>", partial(self.format_and_print, entry, block_index))
+            
+        # End making inputs
+        
+        # Start of making buttons
+        start_button = tk.Button(self.view.root, text="Start", command=lambda: self.move_disks(0))
+        start_button.grid(row=2, column=0, padx=10, pady=20)
+        
+        two_digit_blocks = self.view.break_into_blocks(self.model.student_id, 2);
+        for block_index, two_digits in enumerate(two_digit_blocks):
+            button = tk.Button(self.view.root, text=f"# {block_index+1}", command=partial(self.move_disks, two_digits))
+            button.grid(row=2, column=block_index + 1, padx=10, pady=20)
+        
+        end_button = tk.Button(self.view.root, text="End", command=lambda: self.move_disks(100))
+        end_button.grid(row=2, column=len(two_digit_blocks)+1, padx=10, pady=20)
+        # End of making buttons
 
 def main():
     # Init model, view and controller
@@ -163,36 +191,6 @@ def main():
     view = HanoiView(root, model)
     controller = HanoiController(model, view)
     controller.start()
-    
-    
-    # Start making inputs
-    two_digit_blocks = view.break_into_blocks(student_id, 2);
-    for block_index, two_digits in enumerate(two_digit_blocks):
-        text_var = tk.StringVar()
-        text_var.set(str(two_digits))
-        entry = tk.Entry(root, textvariable=text_var)
-        entry.grid(row=1, column=block_index + 1, padx=10, pady=20)
-        # Bind the keypress event to restrict input to numeric and limit length
-        entry.bind("<KeyPress>", partial(controller.restrict_input, entry))
-        # Bind the Return (Enter) key to process and print the input
-        entry.bind("<Return>", partial(controller.format_and_print, entry, block_index))
-        
-    # End making inputs
-    
-    # Start of making buttons
-    start_button = tk.Button(root, text="Start", command=lambda: controller.move_disks(0))
-    start_button.grid(row=2, column=0, padx=10, pady=20)
-    
-    two_digit_blocks = view.break_into_blocks(student_id, 2);
-    for block_index, two_digits in enumerate(two_digit_blocks):
-        button = tk.Button(root, text=f"# {block_index+1}", command=partial(controller.move_disks, two_digits))
-        button.grid(row=2, column=block_index + 1, padx=10, pady=20)
-    
-    end_button = tk.Button(root, text="End", command=lambda: controller.move_disks(100))
-    end_button.grid(row=2, column=len(two_digit_blocks)+1, padx=10, pady=20)
-    # End of making buttons
-    
-    
     root.mainloop()
 
 if __name__ == "__main__":
