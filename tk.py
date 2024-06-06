@@ -16,6 +16,13 @@ class HanoiModel:
             state.append([number_of_disks - idx + (8 - i) * 10 for idx in range(number_of_disks)])
         return state
     
+    def set_student_id(self, student_id):
+        self.student_id = student_id
+        self.state = self.get_init_state()
+        self.counter = 0
+        self.max_counter = 0
+        self.limit_counter = 1e10
+    
     def move_in_state(self, from_rod, to_rod):
         if self.counter >= self.limit_counter:
             return True
@@ -55,8 +62,9 @@ class HanoiModel:
 
 class HanoiView:
     def __init__(self, root, model):
+        self.root = root
         self.model = model
-        self.canvas = tk.Canvas(root, width=800, height=400, bg="white")
+        self.canvas = tk.Canvas(self.root, width=800, height=400, bg="white")
         self.canvas.grid(row=0, columnspan=10, padx=10, pady=20)
         self.disk_colors = [
             "AliceBlue", "#FAEBD7", "Aqua", "#7FFFD4", "Azure", "#F5F5DC", "Beige", "#FFE4C4",
@@ -103,7 +111,7 @@ class HanoiView:
             block = int(number_string[i:i + block_size])
             blocks.append(block)
         return blocks
-
+    
 class HanoiController:
     def __init__(self, model, view):
         self.model = model
@@ -121,6 +129,28 @@ class HanoiController:
         self.model.set_limit_counter(limit)
         self.model.start_moving_discs()
         self.view.draw_state()
+        
+    def restrict_input(self, entry, event):
+        # Allow only numeric input and limit to two characters
+        valid_keys = "0123456789"
+        content = entry.get()
+        if len(content) >= 2 and event.keysym not in ["Delete", "BackSpace"]:
+            return "break"
+        if event.char not in valid_keys and event.keysym not in ["Delete", "BackSpace", "Return"]:
+            return "break"
+        
+    def format_and_print(self, entry, block_index, event):
+        content = entry.get()
+        if(len(content) == 0):
+            content = '00'
+        if(len(content) == 1):
+            content = '0' + content
+        two_digit_blocks = self.view.break_into_blocks(self.model.student_id, 2);
+        two_digit_blocks[block_index] = content
+        self.model.set_student_id(''.join(map(str, two_digit_blocks)))
+        print(self.model.student_id)
+        self.start()
+        
 
 def main():
     # Init model, view and controller
@@ -134,18 +164,34 @@ def main():
     controller = HanoiController(model, view)
     controller.start()
     
-    # Making buttons
-    start_button = tk.Button(root, text="Start", command=lambda: controller.move_disks(0))
-    start_button.grid(row=1, column=0, padx=10, pady=20)
     
-    # Break student_id into blocks of 2 digits: `70256421` -> `[70, 25, 64, 21]
+    # Start making inputs
     two_digit_blocks = view.break_into_blocks(student_id, 2);
     for block_index, two_digits in enumerate(two_digit_blocks):
-        button = tk.Button(root, text=str(two_digits), command=partial(controller.move_disks, two_digits))
-        button.grid(row=1, column=block_index + 1, padx=10, pady=20)
+        text_var = tk.StringVar()
+        text_var.set(str(two_digits))
+        entry = tk.Entry(root, textvariable=text_var)
+        entry.grid(row=1, column=block_index + 1, padx=10, pady=20)
+        # Bind the keypress event to restrict input to numeric and limit length
+        entry.bind("<KeyPress>", partial(controller.restrict_input, entry))
+        # Bind the Return (Enter) key to process and print the input
+        entry.bind("<Return>", partial(controller.format_and_print, entry, block_index))
+        
+    # End making inputs
+    
+    # Start of making buttons
+    start_button = tk.Button(root, text="Start", command=lambda: controller.move_disks(0))
+    start_button.grid(row=2, column=0, padx=10, pady=20)
+    
+    two_digit_blocks = view.break_into_blocks(student_id, 2);
+    for block_index, two_digits in enumerate(two_digit_blocks):
+        button = tk.Button(root, text=f"# {block_index+1}", command=partial(controller.move_disks, two_digits))
+        button.grid(row=2, column=block_index + 1, padx=10, pady=20)
     
     end_button = tk.Button(root, text="End", command=lambda: controller.move_disks(100))
-    end_button.grid(row=1, column=len(two_digit_blocks)+1, padx=10, pady=20)
+    end_button.grid(row=2, column=len(two_digit_blocks)+1, padx=10, pady=20)
+    # End of making buttons
+    
     
     root.mainloop()
 
