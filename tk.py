@@ -52,13 +52,31 @@ class HanoiModel:
         self.limit_counter = self.max_counter * limit / 100
         print(self.limit_counter, 'limit counter')
         
-    def start_moving_discs(self):
-        for i in range(len(self.student_id) - 1, 0, -1):
-            from_rod = i
-            to_rod = i - 1
-            aux_rod = i - 2 if i == len(self.student_id) - 1 else i + 1
-            self.hanoi(len(self.state[i]), from_rod, to_rod, aux_rod)
+    def push_to_right(self, from_index, to_index, n):
+        counter = n
+        while counter > 0:
+            self.move_in_state(from_index, to_index)
+            counter -= 1
 
+    def start_moving_discs(self):
+        state_length = len(self.state)
+        for i in range(state_length - 2, -1, -1):
+            if i == 0:
+                self.push_to_right(0, 2, len(self.state[i]))
+                hanoi_shift = 5
+                start = 2
+                while hanoi_shift > 0:
+                    self.hanoi(len(self.state[start]), start, start + 1, start - 1)
+                    start += 1
+                    hanoi_shift -= 1
+            else:
+                self.push_to_right(i, i + 1, len(self.state[i]))
+                hanoi_shift = state_length - i - 2
+                start = i + 1
+                while hanoi_shift > 0:
+                    self.hanoi(len(self.state[start]), start, start + 1, start - 1)
+                    start += 1
+                    hanoi_shift -= 1
 
 class HanoiView:
     def __init__(self, root, model):
@@ -192,6 +210,7 @@ def main():
     controller = HanoiController(model, view)
     controller.start()
     root.mainloop()
-
+    
 if __name__ == "__main__":
     main()
+    

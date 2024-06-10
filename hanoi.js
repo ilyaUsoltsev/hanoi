@@ -1,37 +1,68 @@
-const studentId = '70256421';
-let counter = 0;
-const state = [];
-
-for (let i = 0; i < studentId.length; i++) {
-  const numberOfDisks = +studentId[i];
-  state[i] = new Array(numberOfDisks)
-    .fill(undefined)
-    .map((_, idx) => numberOfDisks - idx + (8 - i) * 10);
-}
+const state = [
+  [85, 84, 83, 82, 81],
+  [75, 74, 73, 72, 71],
+  [65, 64, 63, 62, 61],
+  [55, 54, 53, 52, 51],
+  [45, 44, 43, 42, 41],
+  [35, 34, 33, 32, 31],
+  [23, 22],
+  [13, 12, 11],
+];
 
 function moveInState(fromRod, toRod) {
+  console.log('move in state', fromRod, toRod);
   const disk = state[fromRod].pop();
   state[toRod].push(disk);
+  console.log(state);
 }
 
-function hanoi(n, fromRod, toRod, auxRod) {
+function hanoi(n, source, auxiliary, target) {
+  // Base case: When there's only one disc, just move it to the target peg.
   if (n === 0) {
     return;
   }
-  counter++;
 
-  // Move n-1 disks from fromRod to auxRod, using toRod as auxiliary
-  hanoi(n - 1, fromRod, auxRod, toRod);
-  // Move the nth disk from fromRod to toRod
-  moveInState(fromRod, toRod);
-  // Move the n-1 disks from auxRod to toRod, using fromRod as auxiliary
-  hanoi(n - 1, auxRod, toRod, fromRod);
+  // Recursive case: move the smaller stack (n-1 discs) to the auxiliary peg.
+  hanoi(n - 1, source, target, auxiliary);
+
+  // Move the nth disc to the target peg.
+  moveInState(source, target);
+
+  // Move the smaller stack from auxiliary peg to target peg.
+  hanoi(n - 1, auxiliary, source, target);
 }
 
-for (let i = studentId.length - 1; i > 0; i--) {
-  const fromRod = i;
-  const toRod = i - 1;
-  const auxRod = i === studentId.length ? i - 2 : i + 1;
-  hanoi(state[i].length, fromRod, toRod, auxRod);
+function pushToRight(from, to, n) {
+  let counter = n;
+  while (counter > 0) {
+    moveInState(from, to);
+    counter--;
+  }
 }
+
+for (let i = state.length - 2; i >= 0; i--) {
+  if (i === 0) {
+    pushToRight(0, 2, state[i].length);
+    let hanoiShift = 5;
+    let start = 2;
+    while (hanoiShift > 0) {
+      console.log('11', start);
+
+      hanoi(state[start].length, start, start - 1, start + 1);
+      start++;
+      hanoiShift--;
+    }
+  } else {
+    pushToRight(i, i + 1, state[i].length);
+    let hanoiShift = state.length - i - 2;
+    let start = i + 1;
+    while (hanoiShift > 0) {
+      console.log('22');
+      hanoi(state[start].length, start, start - 1, start + 1);
+      start++;
+      hanoiShift--;
+    }
+  }
+}
+console.log('------');
 console.log(state);
